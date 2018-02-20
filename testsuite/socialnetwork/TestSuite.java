@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 import org.junit.Test;
 import socialnetwork.domain.Backlog;
 import socialnetwork.domain.Board;
+import socialnetwork.domain.LinkedBacklog;
+import socialnetwork.domain.LinkedBoard;
 import socialnetwork.domain.Message;
 import socialnetwork.domain.Worker;
 
@@ -70,8 +72,7 @@ public class TestSuite {
 
 
   private void runExperiment(ExperimentSettings settings) {
-    //TODO replace by your Backlog implementation
-    Backlog backlog = null;
+    Backlog backlog = new LinkedBacklog();
     SocialNetwork socialNetwork = new SocialNetwork(backlog);
 
     Worker[] workers = new Worker[settings.nWorkers];
@@ -88,8 +89,7 @@ public class TestSuite {
       return user;
     });
     Arrays.stream(userThreads).forEach(u -> {
-      //TODO add your own board implementation
-      socialNetwork.register(u, null);
+      socialNetwork.register(u, new LinkedBoard());
       u.start();
     });
 

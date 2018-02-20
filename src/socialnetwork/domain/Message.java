@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 import socialnetwork.User;
 
-public class Message {
+public class Message implements Comparable<Message> {
 
   private final static AtomicInteger nextId = new AtomicInteger(0);
 
@@ -12,6 +12,11 @@ public class Message {
   private final Collection<User> recipients;
   private final String text;
   private final int id;
+
+  @Override
+  public int compareTo(Message o) {
+    return this.getMessageId() - o.getMessageId();
+  }
 
   public Message(User sender, Collection<User> recipients, String text) {
     this.sender = sender;
