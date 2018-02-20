@@ -1,16 +1,19 @@
 package socialnetwork.node;
 
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
-public class SortedLinkedList<T extends Comparable<T>>{
+public class SortedLinkedList<T extends Comparable<T>> {
 
   private Node<T> head;
+  private Lock lock;
 
   public SortedLinkedList() {
     this.head = null;
   }
 
-  public synchronized boolean addObject(T val) {
+  public boolean addObject(T val) {
     if (head == null) {
       head = new Node<>(val, null);
       return true;
@@ -25,11 +28,11 @@ public class SortedLinkedList<T extends Comparable<T>>{
     return true;
   }
 
-  public synchronized boolean deleteObject(T val) {
+  public boolean deleteObject(T val) {
     if (head == null) {
       return false;
     }
-    if(equal(head.getVal(), val)) {
+    if (equal(head.getVal(), val)) {
       head = head.getNext();
       return true;
     }
@@ -41,8 +44,7 @@ public class SortedLinkedList<T extends Comparable<T>>{
     return true;
   }
 
-
-  public synchronized List<T> getListSnapshot() {
+  public List<T> getListSnapshot() {
     java.util.LinkedList<T> messages = new java.util.LinkedList<>();
     Node<T> currNode = head;
     while (currNode != null) {
@@ -52,7 +54,7 @@ public class SortedLinkedList<T extends Comparable<T>>{
     return messages;
   }
 
-  private synchronized Node<T> findPrevNode(T val) {
+  private Node<T> findPrevNode(T val) {
     Node<T> currNode = head;
     while ((currNode.getNext() != null)) {
       if (!compareVal(currNode.getNext().getVal(), val)) {
@@ -63,7 +65,7 @@ public class SortedLinkedList<T extends Comparable<T>>{
     return currNode;
   }
 
-  public synchronized int size() {
+  public int size() {
     int count = 0;
     Node<T> currNode = head;
     while (currNode != null) {

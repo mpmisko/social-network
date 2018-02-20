@@ -17,7 +17,7 @@ public class User extends Thread {
   protected final SocialNetwork socialNetwork;
   private final int id;
   private final String name;
-  private static double DEFAULT_DELETE_PROBABLITY = 0.5;
+  private static double DEFAULT_DELETE_PROBABILITY = 0.5;
   private final Random random;
 
 
@@ -41,7 +41,7 @@ public class User extends Thread {
 
     if(board.size() > 0) {
       for (Message m : board.getBoardSnapshot()) {
-        if(shouldDelete(DEFAULT_DELETE_PROBABLITY)) {
+        if(shouldDelete(DEFAULT_DELETE_PROBABILITY)) {
           socialNetwork.deleteMessage(m);
         }
       }

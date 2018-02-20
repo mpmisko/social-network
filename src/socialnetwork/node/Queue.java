@@ -12,31 +12,31 @@ public class Queue<T> {
     this.tail = null;
   }
 
-  public synchronized boolean addElement(T val) {
-     if (head == null) {
-       head = new Node<>(val, null);
-       tail = head;
-       return true;
-     }
-     Node<T> newNode = new Node<>(val, null);
-     tail.setNext(newNode);
-     tail = newNode;
-     return true;
+  public boolean addElement(T val) {
+    if (head == null) {
+      head = new Node<>(val, null);
+      tail = head;
+      return true;
+    }
+    Node<T> newNode = new Node<>(val, null);
+    tail.setNext(newNode);
+    tail = newNode;
+    return true;
   }
 
-  public synchronized Optional<T> getHeadVal() {
-    if(head == null) {
+  public Optional<T> getHeadVal() {
+    if (head == null) {
       return Optional.empty();
     }
     T ret = head.getVal();
     head = head.getNext();
-    if(head == null) {
+    if (head == null) {
       tail = null;
     }
     return Optional.of(ret);
   }
 
-  public synchronized int size() {
+  public int size() {
     int count = 0;
     Node<T> currNode = head;
     while (currNode != null) {
