@@ -12,7 +12,7 @@ public class Queue<T> {
     this.tail = null;
   }
 
-  public boolean addElement(T val) {
+  public  synchronized boolean addElement(T val) {
     if (head == null) {
       head = new Node<>(val, null);
       tail = head;
@@ -24,7 +24,7 @@ public class Queue<T> {
     return true;
   }
 
-  public Optional<T> getHeadVal() {
+  public synchronized Optional<T> getHeadVal() {
     if (head == null) {
       return Optional.empty();
     }
@@ -36,7 +36,7 @@ public class Queue<T> {
     return Optional.of(ret);
   }
 
-  public int size() {
+  public synchronized int size() {
     int count = 0;
     Node<T> currNode = head;
     while (currNode != null) {
