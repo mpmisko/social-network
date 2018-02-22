@@ -2,84 +2,75 @@ package socialnetwork.node;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class SortedLinkedList<T extends Comparable<T>> {
 
-  private Node<T> head;
+  private LockFreeNode<T> head;
+  private AtomicInteger size;
 
   public SortedLinkedList() {
-    this.head = new Node<>();
+    this.head = new LockFreeNode<T>();
+    this.size = new AtomicInteger(0);
   }
 
   public boolean addObject(T val) {
-    Node<T> newNode = new Node<>(val, null);
-    Node<T> prevNode = new Node<>();
-    Node<T> nextNode = new Node<>();
-    try {
-      prevNode = findPrevNode(val);
-      nextNode = prevNode.getNext();
-      newNode.setNext(nextNode);
-      prevNode.setNext(newNode);
-    } finally{
-      prevNode.unlock();
-      if(nextNode != null) {
-        nextNode.unlock();
+    do {
+      System.out.println("adding");
+      Pair<LockFreeNode<T>> pair = findPrevNode(val);
+      LockFreeNode<T> prevNode = pair.getPrev();
+      LockFreeNode<T> currNode = pair.getNext();
+      LockFreeNode<T> newNode = new LockFreeNode<T>(val, currNode);
+      if(prevNode.setNextIfValid(currNode, newNode)) {
+        size.incrementAndGet();
+        return true;
       }
-    }
-    return true;
+    } while (true);
   }
 
   public boolean deleteObject(T val) {
-    Node<T> prevNode = new Node<>();
-    try {
-      prevNode = findPrevNode(val);
-      if ((prevNode.getNext() == null) | !equal(prevNode.getNext().getVal(), val)) {
+    do {
+      Pair<LockFreeNode<T>> pair = findPrevNode(val);
+      LockFreeNode<T> prevNode = pair.getPrev();
+      LockFreeNode<T> currNode = pair.getNext();
+      if(currNode == null) {
         return false;
       }
-      prevNode.setNext(prevNode.getNext().getNext());
-    }
-    finally {
-      prevNode.unlock();
-    }
-    return true;
+      if(!prevNode.setInvalid(currNode)) {
+        continue;
+      }
+
+      //prevNode.setNextIfValid(currNode, currNode.getNext());
+      size.decrementAndGet();
+      return true;
+
+    } while (true);
   }
 
   public synchronized List<T> getListSnapshot() {
     java.util.LinkedList<T> messages = new java.util.LinkedList<>();
-    Node<T> currNode = head.getNext();
-    while (currNode != null) {
-      messages.addLast(currNode.getVal());
-      currNode = currNode.getNext();
+    LockFreeNode<T> currNode = head.getNext();
+    while(currNode != null) {
+      messages.add(currNode.getVal());
     }
     return messages;
   }
 
-  public synchronized int size() {
-    int count = 0;
-    Node<T> currNode = head.getNext();
-    while (currNode != null) {
-      count++;
-      currNode = currNode.getNext();
-    }
-    return count;
+  public int size() {
+    return size.get();
   }
 
-  private Node<T> findPrevNode(T val) {
-    Node<T> currNode = head;
-    currNode.lock();
-    Node<T> nextNode = currNode.getNext();
-    while ((nextNode != null)) {
-      nextNode.lock();
+  private Pair<LockFreeNode<T>> findPrevNode(T val) {
+    LockFreeNode<T> currNode = head;
+    while(currNode.getNext() != null) {
+      LockFreeNode<T> nextNode = currNode.getNext();
       if (!compareVal(nextNode.getVal(), val)) {
-        return currNode;
+        return new Pair<>(currNode, currNode.getNext());
       }
-      currNode.unlock();
       currNode = currNode.getNext();
-      nextNode = currNode.getNext();
     }
-    return currNode;
+    return new Pair<>(currNode, currNode.getNext());
   }
 
   private boolean compareVal(T a, T b) {

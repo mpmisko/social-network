@@ -1,11 +1,10 @@
 package socialnetwork.node;
-
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Node<T>{
-  private T val;
-  private Node<T> next;
+  protected T val;
+  protected Node<T> next;
   private Lock lock;
 
 
