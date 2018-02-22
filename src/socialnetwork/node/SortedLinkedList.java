@@ -83,7 +83,7 @@ public class SortedLinkedList<T extends Comparable<T>> {
   public static void main(String[] args) {
     SortedLinkedList<Integer> list = new SortedLinkedList<>();
     List<Thread> threads = new LinkedList<>();
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 10; i++) {
       threads.add(new Thread(() -> {
         list.addObject(7);
         list.addObject(6);
@@ -95,7 +95,7 @@ public class SortedLinkedList<T extends Comparable<T>> {
     }
 
     threads.forEach(t ->
-    t.run());
+    t.start());
 
     threads.forEach(t -> {
       try {
