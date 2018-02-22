@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicMarkableReference;
 
 public class LockFreeNode<T> {
   private T val;
-  //mark and reference of next node
+  //mark of current node and reference to next
   private AtomicMarkableReference<LockFreeNode<T>> next;
 
   public LockFreeNode(T val, LockFreeNode<T> next) {
@@ -30,13 +30,14 @@ public class LockFreeNode<T> {
     return next.getReference();
   }
 
-  public boolean setInvalid(LockFreeNode<T> expectedNext) {
-    return next.compareAndSet(expectedNext, getNext(), true, false);
+  public boolean setInvalid() {
+      LockFreeNode<T> nextVal = getNext();
+      return next.compareAndSet(nextVal, nextVal, true, false);
   }
 
-
-  public boolean setNext(LockFreeNode<T> expected, LockFreeNode<T> newNext, boolean valid) {
-    return next.compareAndSet(expected, newNext, valid, true);
+  public boolean setNext(LockFreeNode<T> expected, LockFreeNode<T> newNext, boolean
+      expectedValidity) {
+    return next.compareAndSet(expected, newNext, expectedValidity, true);
   }
 
   public boolean isValid() {

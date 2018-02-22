@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class SortedLinkedList<T extends Comparable<T>> {
 
   private LockFreeNode<T> head;
-  private AtomicInteger size;
+  private volatile AtomicInteger size;
 
   public SortedLinkedList() {
     this.head = new LockFreeNode<T>();
@@ -16,7 +16,6 @@ public class SortedLinkedList<T extends Comparable<T>> {
   }
 
   public boolean addObject(T val) {
-    System.out.println("size: " + size);
     do {
       Pair<LockFreeNode<T>> pair = findPrevNode(val);
       LockFreeNode<T> prevNode = pair.getPrev();
@@ -26,32 +25,46 @@ public class SortedLinkedList<T extends Comparable<T>> {
         size.incrementAndGet();
         return true;
       }
+      if(prevNode.setNext(currNode, newNode, false)) {
+        size.incrementAndGet();
+        return true;
+      }
     } while (true);
   }
 
   public boolean deleteObject(T val) {
     do {
       Pair<LockFreeNode<T>> pair = findPrevNode(val);
-      LockFreeNode<T> prevNode = pair.getPrev();
       LockFreeNode<T> currNode = pair.getNext();
-      if(currNode == null) {
+
+      if((currNode == null)) {
         return false;
       }
-      if(!prevNode.setInvalid(currNode)) {
+
+      if(!currNode.setInvalid()) {
         continue;
       }
-
       size.decrementAndGet();
       return true;
-
     } while (true);
   }
 
   public synchronized List<T> getListSnapshot() {
     java.util.LinkedList<T> messages = new java.util.LinkedList<>();
     LockFreeNode<T> currNode = head.getNext();
-    while(currNode != null) {
+    while((currNode != null)) {
       messages.add(currNode.getVal());
+      currNode = currNode.getNext();
+    }
+    return messages;
+  }
+
+  public synchronized List<LockFreeNode<T>> getNodeListSnapshot() {
+    java.util.LinkedList<LockFreeNode<T>> messages = new java.util.LinkedList<>();
+    LockFreeNode<T> currNode = head.getNext();
+    while((currNode != null)) {
+      messages.add(currNode);
+      currNode = currNode.getNext();
     }
     return messages;
   }
@@ -60,12 +73,24 @@ public class SortedLinkedList<T extends Comparable<T>> {
     return size.get();
   }
 
+  public int countValid() {
+    int c = 0;
+    LockFreeNode<T> currNode = head.getNext();
+    while(currNode != null) {
+      if (currNode.isValid()) {
+        c++;
+      }
+      currNode = currNode.getNext();
+    }
+    return c;
+  }
+
   private Pair<LockFreeNode<T>> findPrevNode(T val) {
     LockFreeNode<T> currNode = head;
     while(currNode.getNext() != null) {
       LockFreeNode<T> nextNode = currNode.getNext();
-      if (!compareVal(nextNode.getVal(), val)) {
-        return new Pair<>(currNode, currNode.getNext());
+      if (!compareVal(nextNode.getVal(), val) && nextNode.isValid()) {
+        return new Pair<>(currNode, nextNode);
       }
       currNode = currNode.getNext();
     }
@@ -83,14 +108,12 @@ public class SortedLinkedList<T extends Comparable<T>> {
   public static void main(String[] args) {
     SortedLinkedList<Integer> list = new SortedLinkedList<>();
     List<Thread> threads = new LinkedList<>();
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 222; i++) {
       threads.add(new Thread(() -> {
-        list.addObject(7);
-        list.addObject(6);
-        list.addObject(5);
-        list.addObject(4);
-        list.deleteObject(5);
-        list.deleteObject(4);
+        for(int j = 0; j < 100; j++) {
+          list.addObject(j);
+        }
+        list.deleteObject(3);
       }));
     }
 
@@ -105,6 +128,11 @@ public class SortedLinkedList<T extends Comparable<T>> {
       }
     });
 
-    System.out.println(list.size());
+    System.out.println(list.countValid());
+    list.getNodeListSnapshot()
+        .forEach(
+            e -> {
+              System.out.println(e.getVal().toString() + ' ' + e.isValid());
+            });
   }
 }
