@@ -49,6 +49,7 @@ public class Queue<T> {
   public static void main(String[] args) {
     Queue<Integer> i = new Queue<>();
     i.addElement(2);
+    i.getHeadVal();
     System.out.println(i.size());
   }
 }

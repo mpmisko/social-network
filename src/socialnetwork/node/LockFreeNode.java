@@ -35,9 +35,8 @@ public class LockFreeNode<T> {
   }
 
 
-
-  public boolean setNextIfValid(LockFreeNode<T> expected, LockFreeNode<T> newNext) {
-    return next.compareAndSet(expected, newNext, true, true);
+  public boolean setNext(LockFreeNode<T> expected, LockFreeNode<T> newNext, boolean valid) {
+    return next.compareAndSet(expected, newNext, valid, true);
   }
 
   public boolean isValid() {

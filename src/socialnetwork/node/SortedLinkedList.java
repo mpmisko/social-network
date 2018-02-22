@@ -16,13 +16,13 @@ public class SortedLinkedList<T extends Comparable<T>> {
   }
 
   public boolean addObject(T val) {
+    System.out.println("size: " + size);
     do {
-      System.out.println("adding");
       Pair<LockFreeNode<T>> pair = findPrevNode(val);
       LockFreeNode<T> prevNode = pair.getPrev();
       LockFreeNode<T> currNode = pair.getNext();
       LockFreeNode<T> newNode = new LockFreeNode<T>(val, currNode);
-      if(prevNode.setNextIfValid(currNode, newNode)) {
+      if(prevNode.setNext(currNode, newNode, true)) {
         size.incrementAndGet();
         return true;
       }
@@ -41,7 +41,6 @@ public class SortedLinkedList<T extends Comparable<T>> {
         continue;
       }
 
-      //prevNode.setNextIfValid(currNode, currNode.getNext());
       size.decrementAndGet();
       return true;
 
@@ -90,9 +89,8 @@ public class SortedLinkedList<T extends Comparable<T>> {
         list.addObject(6);
         list.addObject(5);
         list.addObject(4);
-        list.deleteObject(6);
+        list.deleteObject(5);
         list.deleteObject(4);
-        list.deleteObject(7);
       }));
     }
 
