@@ -1,13 +1,15 @@
 package socialnetwork.node;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class SortedLinkedList<T extends Comparable<T>> {
 
-  private LockFreeNode<T> head;
+  private volatile LockFreeNode<T> head;
   private volatile AtomicInteger size;
 
   public SortedLinkedList() {
@@ -28,13 +30,29 @@ public class SortedLinkedList<T extends Comparable<T>> {
 
     } while (true);
   }
+  public Optional<T> getAndRemoveHead() {
+    do {
+      clearNodes();
+      LockFreeNode<T> headNode = head.getNext();
+      if(headNode == null) {
+        return Optional.empty();
+      }
+      if(!headNode.setInvalid()) {
+        continue;
+      }
+      size.decrementAndGet();
+      return Optional.of(headNode.getVal());
+
+    } while (true);
+  }
+
 
   public boolean deleteObject(T val) {
     do {
-      Pair<LockFreeNode<T>> pair = findPrevNode(val);
+      Pair<LockFreeNode<T>> pair = findPrevNodeEqual(val);
       LockFreeNode<T> currNode = pair.getNext();
 
-      if((currNode == null)) {
+      if((currNode == null) || (!equal(val, currNode.getVal()))) {
         return false;
       }
 
@@ -43,13 +61,11 @@ public class SortedLinkedList<T extends Comparable<T>> {
       }
 
       size.decrementAndGet();
-
       return true;
     } while (true);
   }
 
   public List<T> getListSnapshot() {
-    clearNodes(head);
     java.util.LinkedList<T> messages = new java.util.LinkedList<>();
     LockFreeNode<T> currNode = head.getNext();
     while((currNode != null)) {
@@ -58,6 +74,17 @@ public class SortedLinkedList<T extends Comparable<T>> {
     }
     return messages;
   }
+
+  public List<LockFreeNode<T>> getListNodeSnapshot() {
+    java.util.LinkedList<LockFreeNode<T>> messages = new java.util.LinkedList<>();
+    LockFreeNode<T> currNode = head.getNext();
+    while((currNode != null)) {
+      messages.add(currNode);
+      currNode = currNode.getNext();
+    }
+    return messages;
+  }
+
 
   public List<LockFreeNode<T>> getNodeListSnapshot() {
     java.util.LinkedList<LockFreeNode<T>> messages = new java.util.LinkedList<>();
@@ -86,7 +113,7 @@ public class SortedLinkedList<T extends Comparable<T>> {
   }
 
   private Pair<LockFreeNode<T>> findPrevNode(T val) {
-    clearNodes(head);
+    clearNodes();
     LockFreeNode<T> currNode = head;
     while(currNode.getNext() != null) {
       LockFreeNode<T> nextNode = currNode.getNext();
@@ -95,11 +122,24 @@ public class SortedLinkedList<T extends Comparable<T>> {
       }
       currNode = currNode.getNext();
     }
-    return new Pair<>(currNode, currNode.getNext());
+    return new Pair<>(currNode, null);
   }
 
-  private void clearNodes(LockFreeNode<T> start) {
-    LockFreeNode<T> fst = start;
+  private Pair<LockFreeNode<T>> findPrevNodeEqual(T val) {
+    clearNodes();
+    LockFreeNode<T> currNode = head;
+    while(currNode.getNext() != null) {
+      LockFreeNode<T> nextNode = currNode.getNext();
+      if (equal(nextNode.getVal(), val) && nextNode.isValid()) {
+        return new Pair<>(currNode, nextNode);
+      }
+      currNode = currNode.getNext();
+    }
+    return new Pair<>(currNode, null);
+  }
+
+  private void clearNodes() {
+    LockFreeNode<T> fst = head;
     while (fst != null) {
       while ((fst.getNext() != null) && (fst.getNext().isValid())) {
         fst = fst.getNext();
@@ -110,16 +150,19 @@ public class SortedLinkedList<T extends Comparable<T>> {
           snd = snd.getNext();
         }
         if (!fst.setNextIfValid(fst.getNext(), snd)) {
-          clearNodes(start);
+          clearNodes();
         }
         fst = snd;
       } else {
-        fst = null;
+        break;
       }
     }
   }
 
   private boolean compareVal(T a, T b) {
     return (a == null) | (a.compareTo(b) > 0);
+  }
+  private boolean equal(T a, T b) {
+    return a.compareTo(b) == 0;
   }
 }

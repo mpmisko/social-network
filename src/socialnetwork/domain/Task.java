@@ -2,7 +2,7 @@ package socialnetwork.domain;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Task {
+public class Task implements Comparable<Task>{
 
   private static AtomicInteger nextTaskId = new AtomicInteger(0);
 
@@ -51,6 +51,11 @@ public class Task {
   @Override
   public int hashCode() {
     return id;
+  }
+
+  @Override
+  public int compareTo(Task task) {
+    return task.id - this.id;
   }
 
   public enum Command {

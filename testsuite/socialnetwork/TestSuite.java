@@ -147,6 +147,12 @@ public class TestSuite {
             .collect(Collectors.toList());
         Set<Integer> recipientBoard = userToReceivedMessages.get(recipient);
 
+        sentMessageIds.forEach(e -> {
+          if(!recipientBoard.contains(e)) {
+            System.out.println(e);
+          }
+        });
+
         assertTrue(recipientBoard.containsAll(sentMessageIds));
 
         int count = expectedMessageCount.getOrDefault(recipient,0);

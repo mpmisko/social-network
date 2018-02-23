@@ -1,26 +1,33 @@
 package socialnetwork.node;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Queue<T> {
 
   private Node<T> head;
   private Node<T> tail;
+  private AtomicInteger size;
 
   public Queue() {
     this.head = null;
     this.tail = null;
+    this.size = new AtomicInteger(0);
   }
 
   public synchronized boolean addElement(T val) {
      if (head == null) {
        head = new Node<>(val, null);
        tail = head;
+       size.getAndIncrement();
        return true;
      }
      Node<T> newNode = new Node<>(val, null);
      tail.setNext(newNode);
      tail = newNode;
+     size.getAndIncrement();
      return true;
   }
 
@@ -33,23 +40,12 @@ public class Queue<T> {
     if(head == null) {
       tail = null;
     }
+    size.getAndDecrement();
     return Optional.of(ret);
   }
 
   public synchronized int size() {
-    int count = 0;
-    Node<T> currNode = head;
-    while (currNode != null) {
-      count++;
-      currNode = currNode.getNext();
-    }
-    return count;
+    return size.get();
   }
 
-  public static void main(String[] args) {
-    Queue<Integer> i = new Queue<>();
-    i.addElement(2);
-    i.getHeadVal();
-    System.out.println(i.size());
-  }
 }

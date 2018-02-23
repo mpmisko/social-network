@@ -38,7 +38,7 @@ public class Worker extends Thread {
       nextTask.getBoard().addMessage(m);
     } else {
       if (!nextTask.getBoard().deleteMessage(m)) {
-        backlog.add(new Task(Command.DELETE, m, nextTask.getBoard()));
+        backlog.add(nextTask);
       }
     }
   }
