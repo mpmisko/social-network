@@ -2,11 +2,11 @@ package socialnetwork;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
 import socialnetwork.domain.Backlog;
 import socialnetwork.domain.Board;
 import socialnetwork.domain.Message;
@@ -36,27 +36,27 @@ public class SocialNetwork {
     allRecipients.add(sender);
     allRecipients.addAll(recipients);
     allRecipients.stream().forEach(
-        r -> {
-          checkUserRegistered(r);
-          editsBacklog.add(new Task(Task.Command.POST, message, getBoards().get(r)));
-        });
+            r -> {
+              checkUserRegistered(r);
+              editsBacklog.add(new Task(Task.Command.POST, message, getBoards().get(r)));
+            });
     if (DEBUG) {
       System.out.println("new message " + message.getMessageId()
-          + " from " + sender + " to " + allRecipients);
+              + " from " + sender + " to " + allRecipients);
     }
     return message;
   }
 
   public void deleteMessage(Message message) {
     getBoards().entrySet().stream()
-        .filter(entry -> {
-          User user = entry.getKey();
-          return message.getRecipients().contains(user) || message.getSender().equals(user);
-        })
-        .forEach(entry -> editsBacklog.add(new Task(Command.DELETE, message, entry.getValue())));
+            .filter(entry -> {
+              User user = entry.getKey();
+              return message.getRecipients().contains(user) || message.getSender().equals(user);
+            })
+            .forEach(entry -> editsBacklog.add(new Task(Command.DELETE, message, entry.getValue())));
     if (DEBUG) {
       System.out.println("deleting message " + message.getMessageId() + " to "
-          + message.getRecipients() + "," + message.getSender());
+              + message.getRecipients() + "," + message.getSender());
     }
   }
 
@@ -68,7 +68,7 @@ public class SocialNetwork {
   private void checkUserRegistered(User user) {
     if (!getBoards().containsKey(user)) {
       throw new RuntimeException(
-          "Sender " + user + " not (correctly) registerd to the social network");
+              "Sender " + user + " not (correctly) registered to the social network");
     }
   }
 

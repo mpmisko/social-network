@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import socialnetwork.domain.Board;
 import socialnetwork.domain.Message;
 
@@ -39,9 +40,9 @@ public class User extends Thread {
 
     Board board = socialNetwork.userBoard(this);
 
-    if(board.size() > 0) {
+    if (board.size() > 0) {
       for (Message m : board.getBoardSnapshot()) {
-        if(shouldDelete(DEFAULT_DELETE_PROBABILITY)) {
+        if (shouldDelete(DEFAULT_DELETE_PROBABILITY)) {
           socialNetwork.deleteMessage(m);
         }
       }
@@ -51,9 +52,9 @@ public class User extends Thread {
   @Override
   public String toString() {
     return "User{" +
-        "id=" + id +
-        ", name='" + name + '\'' +
-        '}';
+            "id=" + id +
+            ", name='" + name + '\'' +
+            '}';
   }
 
   @Override
@@ -61,15 +62,15 @@ public class User extends Thread {
     return id;
   }
 
-  private <T> Set<T> randomSubset(Set<T> set){
+  private <T> Set<T> randomSubset(Set<T> set) {
     List<T> list = new ArrayList<>();
     list.addAll(set);
     Collections.shuffle(list);
-    list = list.subList(0, random.nextInt(list.size()-1));
+    list = list.subList(0, random.nextInt(list.size() - 1));
     return new HashSet<>(list);
   }
 
   private boolean shouldDelete(double probability) {
-    return random.nextInt(100) > 100*(1-probability);
+    return random.nextInt(100) > 100 * (1 - probability);
   }
 }

@@ -1,4 +1,4 @@
-package socialnetwork.node;
+package socialnetwork.sortedlinkedlist;
 
 public class Pair<T> {
   private final T prev;

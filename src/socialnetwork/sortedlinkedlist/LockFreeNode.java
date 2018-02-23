@@ -1,4 +1,4 @@
-package socialnetwork.node;
+package socialnetwork.sortedlinkedlist;
 
 
 import java.util.concurrent.atomic.AtomicMarkableReference;

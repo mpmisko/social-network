@@ -2,14 +2,14 @@ package socialnetwork.domain;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Task implements Comparable<Task>{
+public class Task implements Comparable<Task> {
 
   private static AtomicInteger nextTaskId = new AtomicInteger(0);
 
-  final Command command;
-  final Message message;
-  final Board board;
-  final int id;
+  private final Command command;
+  private final Message message;
+  private final Board board;
+  private final int id;
 
   public Task(Command command, Message message, Board board) {
     this.command = command;

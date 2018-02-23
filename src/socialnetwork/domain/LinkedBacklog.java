@@ -1,11 +1,10 @@
 package socialnetwork.domain;
 
-import socialnetwork.node.Queue;
-import socialnetwork.node.SortedLinkedList;
+import socialnetwork.sortedlinkedlist.SortedLinkedList;
 
 import java.util.Optional;
 
-public class LinkedBacklog extends SortedLinkedList<Task> implements Backlog{
+public class LinkedBacklog extends SortedLinkedList<Task> implements Backlog {
 
   @Override
   public boolean add(Task task) {

@@ -1,10 +1,11 @@
 package socialnetwork.domain;
 
 import java.util.List;
-import socialnetwork.node.SortedLinkedList;
+
+import socialnetwork.sortedlinkedlist.SortedLinkedList;
 
 
-public class LinkedBoard extends SortedLinkedList<Message> implements Board{
+public class LinkedBoard extends SortedLinkedList<Message> implements Board {
 
   @Override
   public boolean addMessage(Message message) {
