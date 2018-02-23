@@ -138,7 +138,7 @@ public class TestSuite {
     // check that all messages sent by an user were received properly
     for (TestUser tUser : userThreads) {
       Multimap<User, Message> userMessages = tUser.getSentMessages();
-//      System.out.println(tUser + " ---> " + userMessages);
+      //System.out.println(tUser + " ---> " + userMessages);
 
       for (Map.Entry<User, Collection<Message>> entry : userMessages.asMap().entrySet()) {
         User recipient = entry.getKey();
@@ -146,6 +146,7 @@ public class TestSuite {
             .map(Message::getMessageId)
             .collect(Collectors.toList());
         Set<Integer> recipientBoard = userToReceivedMessages.get(recipient);
+
         assertTrue(recipientBoard.containsAll(sentMessageIds));
 
         int count = expectedMessageCount.getOrDefault(recipient,0);
@@ -175,6 +176,9 @@ public class TestSuite {
       Message next = it.next();
       int cId = current.getMessageId();
       int nId = next.getMessageId();
+      if(cId <= nId) {
+        System.out.println(cId + " " + nId);
+      }
       assertTrue(cId > nId);
       current = next;
     }

@@ -21,14 +21,11 @@ public class SortedLinkedList<T extends Comparable<T>> {
       LockFreeNode<T> prevNode = pair.getPrev();
       LockFreeNode<T> currNode = pair.getNext();
       LockFreeNode<T> newNode = new LockFreeNode<T>(val, currNode);
-      if(prevNode.setNext(currNode, newNode, true)) {
+      if(prevNode.setNextIfValid(currNode, newNode)) {
         size.incrementAndGet();
         return true;
       }
-      if(prevNode.setNext(currNode, newNode, false)) {
-        size.incrementAndGet();
-        return true;
-      }
+
     } while (true);
   }
 
@@ -44,12 +41,15 @@ public class SortedLinkedList<T extends Comparable<T>> {
       if(!currNode.setInvalid()) {
         continue;
       }
+
       size.decrementAndGet();
+
       return true;
     } while (true);
   }
 
-  public synchronized List<T> getListSnapshot() {
+  public List<T> getListSnapshot() {
+    clearNodes(head);
     java.util.LinkedList<T> messages = new java.util.LinkedList<>();
     LockFreeNode<T> currNode = head.getNext();
     while((currNode != null)) {
@@ -59,7 +59,7 @@ public class SortedLinkedList<T extends Comparable<T>> {
     return messages;
   }
 
-  public synchronized List<LockFreeNode<T>> getNodeListSnapshot() {
+  public List<LockFreeNode<T>> getNodeListSnapshot() {
     java.util.LinkedList<LockFreeNode<T>> messages = new java.util.LinkedList<>();
     LockFreeNode<T> currNode = head.getNext();
     while((currNode != null)) {
@@ -86,6 +86,7 @@ public class SortedLinkedList<T extends Comparable<T>> {
   }
 
   private Pair<LockFreeNode<T>> findPrevNode(T val) {
+    clearNodes(head);
     LockFreeNode<T> currNode = head;
     while(currNode.getNext() != null) {
       LockFreeNode<T> nextNode = currNode.getNext();
@@ -97,42 +98,28 @@ public class SortedLinkedList<T extends Comparable<T>> {
     return new Pair<>(currNode, currNode.getNext());
   }
 
+  private void clearNodes(LockFreeNode<T> start) {
+    LockFreeNode<T> fst = start;
+    while (fst != null) {
+      while ((fst.getNext() != null) && (fst.getNext().isValid())) {
+        fst = fst.getNext();
+      }
+      if (fst.getNext() != null) {
+        LockFreeNode<T> snd = fst.getNext();
+        while((snd != null) && !snd.isValid()) {
+          snd = snd.getNext();
+        }
+        if (!fst.setNextIfValid(fst.getNext(), snd)) {
+          clearNodes(start);
+        }
+        fst = snd;
+      } else {
+        fst = null;
+      }
+    }
+  }
+
   private boolean compareVal(T a, T b) {
     return (a == null) | (a.compareTo(b) > 0);
-  }
-
-  private boolean equal(T a, T b) {
-    return a.compareTo(b) == 0;
-  }
-
-  public static void main(String[] args) {
-    SortedLinkedList<Integer> list = new SortedLinkedList<>();
-    List<Thread> threads = new LinkedList<>();
-    for (int i = 0; i < 222; i++) {
-      threads.add(new Thread(() -> {
-        for(int j = 0; j < 100; j++) {
-          list.addObject(j);
-        }
-        list.deleteObject(3);
-      }));
-    }
-
-    threads.forEach(t ->
-    t.start());
-
-    threads.forEach(t -> {
-      try {
-        t.join();
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
-    });
-
-    System.out.println(list.countValid());
-    list.getNodeListSnapshot()
-        .forEach(
-            e -> {
-              System.out.println(e.getVal().toString() + ' ' + e.isValid());
-            });
   }
 }
